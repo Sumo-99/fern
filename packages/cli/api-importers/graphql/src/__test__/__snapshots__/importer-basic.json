@@ -1,0 +1,232 @@
+{
+  "rootApiFile": {
+    "name": "api",
+    "error-discrimination": {
+      "strategy": "status-code"
+    }
+  },
+  "packageMarkerFile": {},
+  "definitionFiles": {
+    "graphql/__package__.yml": {
+      "types": {
+        "User": {
+          "properties": {
+            "id": "string",
+            "uuid": "string",
+            "name": "string",
+            "email": "optional<string>",
+            "age": "optional<integer>",
+            "balance": "optional<string>",
+            "isActive": "boolean",
+            "role": "UserRole",
+            "posts": "list<Post>",
+            "createdAt": "datetime",
+            "birthDate": "optional<datetime>",
+            "profileUrl": "optional<string>",
+            "metadata": "optional<unknown>"
+          }
+        },
+        "Post": {
+          "properties": {
+            "id": "string",
+            "title": "string",
+            "content": "string",
+            "author": "User",
+            "status": "PostStatus",
+            "tags": "optional<list<string>>",
+            "publishedAt": "optional<datetime>",
+            "viewCount": "optional<string>"
+          }
+        },
+        "UserRole": {
+          "enum": [
+            "ADMIN",
+            "USER",
+            "GUEST"
+          ]
+        },
+        "PostStatus": {
+          "enum": [
+            "DRAFT",
+            "PUBLISHED",
+            "ARCHIVED"
+          ]
+        },
+        "CreateUserInput": {
+          "properties": {
+            "name": "string",
+            "email": "string",
+            "role": "optional<UserRole>"
+          }
+        },
+        "CreatePostInput": {
+          "properties": {
+            "title": "string",
+            "content": "string",
+            "authorId": "string",
+            "tags": "optional<list<string>>"
+          }
+        },
+        "UserFilter": {
+          "properties": {
+            "role": "optional<UserRole>",
+            "isActive": "optional<boolean>"
+          }
+        },
+        "UserRequest": {
+          "properties": {
+            "id": "string"
+          }
+        },
+        "UsersRequest": {
+          "properties": {
+            "filter": "optional<UserFilter>",
+            "limit": "optional<integer>",
+            "offset": "optional<integer>"
+          }
+        },
+        "PostRequest": {
+          "properties": {
+            "id": "string"
+          }
+        },
+        "PostsRequest": {
+          "properties": {
+            "status": "optional<PostStatus>",
+            "limit": "optional<integer>"
+          }
+        },
+        "SearchRequest": {
+          "properties": {
+            "query": "string"
+          }
+        },
+        "CreateUserRequest": {
+          "properties": {
+            "input": "CreateUserInput"
+          }
+        },
+        "UpdateUserRequest": {
+          "properties": {
+            "id": "string",
+            "name": "optional<string>",
+            "email": "optional<string>",
+            "role": "optional<UserRole>"
+          }
+        },
+        "DeleteUserRequest": {
+          "properties": {
+            "id": "string"
+          }
+        },
+        "CreatePostRequest": {
+          "properties": {
+            "input": "CreatePostInput"
+          }
+        },
+        "UpdatePostStatusRequest": {
+          "properties": {
+            "id": "string",
+            "status": "PostStatus"
+          }
+        }
+      },
+      "service": {
+        "auth": false,
+        "base-path": "",
+        "endpoints": {
+          "user": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "UserRequest"
+            },
+            "response": "optional<User>"
+          },
+          "users": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "UsersRequest"
+            },
+            "response": "list<User>"
+          },
+          "post": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "PostRequest"
+            },
+            "response": "optional<Post>"
+          },
+          "posts": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "PostsRequest"
+            },
+            "response": "list<Post>"
+          },
+          "search": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "SearchRequest"
+            },
+            "response": "list<SearchResult>"
+          },
+          "createUser": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "CreateUserRequest"
+            },
+            "response": "User"
+          },
+          "updateUser": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "UpdateUserRequest"
+            },
+            "response": "optional<User>"
+          },
+          "deleteUser": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "DeleteUserRequest"
+            },
+            "response": "boolean"
+          },
+          "createPost": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "CreatePostRequest"
+            },
+            "response": "Post"
+          },
+          "updatePostStatus": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "UpdatePostStatusRequest"
+            },
+            "response": "optional<Post>"
+          }
+        }
+      }
+    }
+  }
+}

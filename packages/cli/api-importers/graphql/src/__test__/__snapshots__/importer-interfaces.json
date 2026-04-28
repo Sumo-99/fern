@@ -1,0 +1,118 @@
+{
+  "rootApiFile": {
+    "name": "api",
+    "error-discrimination": {
+      "strategy": "status-code"
+    }
+  },
+  "packageMarkerFile": {},
+  "definitionFiles": {
+    "graphql/__package__.yml": {
+      "types": {
+        "CheckboxOption": {
+          "properties": {
+            "checkedByDefault": "boolean",
+            "label": "string",
+            "entityId": "integer",
+            "displayName": "string",
+            "isRequired": "boolean"
+          }
+        },
+        "MultipleChoiceOption": {
+          "properties": {
+            "displayStyle": "string",
+            "values": "list<string>",
+            "entityId": "integer",
+            "displayName": "string",
+            "isRequired": "boolean"
+          }
+        },
+        "TextFieldOption": {
+          "properties": {
+            "defaultValue": "optional<string>",
+            "maxLength": "optional<integer>",
+            "entityId": "integer",
+            "displayName": "string",
+            "isRequired": "boolean"
+          }
+        },
+        "Product": {
+          "properties": {
+            "id": "string",
+            "name": "string",
+            "options": "list<ProductOption>"
+          }
+        },
+        "Category": {
+          "properties": {
+            "id": "string",
+            "name": "string",
+            "path": "string"
+          }
+        },
+        "ProductRequest": {
+          "properties": {
+            "id": "string"
+          }
+        },
+        "ProductOptionsRequest": {
+          "properties": {
+            "productId": "string"
+          }
+        },
+        "NodeRequest": {
+          "properties": {
+            "id": "string"
+          }
+        },
+        "SearchRequest": {
+          "properties": {
+            "query": "string"
+          }
+        }
+      },
+      "service": {
+        "auth": false,
+        "base-path": "",
+        "endpoints": {
+          "product": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "ProductRequest"
+            },
+            "response": "optional<Product>"
+          },
+          "productOptions": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "ProductOptionsRequest"
+            },
+            "response": "list<ProductOption>"
+          },
+          "node": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "NodeRequest"
+            },
+            "response": "optional<Node>"
+          },
+          "search": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "SearchRequest"
+            },
+            "response": "list<SearchResult>"
+          }
+        }
+      }
+    }
+  }
+}

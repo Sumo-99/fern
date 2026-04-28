@@ -1,0 +1,928 @@
+{
+  "rootApiFile": {
+    "name": "api",
+    "error-discrimination": {
+      "strategy": "status-code"
+    }
+  },
+  "packageMarkerFile": {},
+  "definitionFiles": {
+    "graphql/__package__.yml": {
+      "types": {
+        "Account": {
+          "properties": {
+            "accountInfo": "AccountInfo",
+            "apps": "AppsConnection",
+            "checkout": "optional<Checkout>",
+            "id": "string",
+            "status": "Status",
+            "stores": "StoreConnection",
+            "subscriptions": "SubscriptionConnection",
+            "userGroups": "UserGroupConnection",
+            "users": "UserConnection"
+          }
+        },
+        "AccountInfo": {
+          "properties": {
+            "name": "string"
+          }
+        },
+        "AccountMutations": {
+          "properties": {
+            "addUserToAccount": "optional<AddUserToAccountResult>",
+            "removeUserFromAccount": "optional<RemoveUserFromAccountResult>"
+          }
+        },
+        "AddUserToAccountInput": {
+          "properties": {
+            "email": "string"
+          }
+        },
+        "AddUserToAccountResult": {
+          "properties": {
+            "account": "optional<Account>"
+          }
+        },
+        "AddUserToStoreInput": {
+          "properties": {
+            "storeId": "string",
+            "user": "UserIdentifierInput"
+          }
+        },
+        "AddUserToStoreResult": {
+          "properties": {
+            "storeId": "string"
+          }
+        },
+        "AddUsersToUserGroupsInput": {
+          "properties": {
+            "userIds": "list<string>",
+            "userGroupIds": "list<string>"
+          }
+        },
+        "AddUsersToUserGroupsResult": {
+          "properties": {
+            "pollingId": "string"
+          }
+        },
+        "App": {
+          "properties": {
+            "id": "string",
+            "name": "string",
+            "eventSources": "AwsEventSourcesConnection"
+          }
+        },
+        "AppMutations": {
+          "properties": {
+            "createEventSource": "optional<CreateEventSourceResult>",
+            "deleteEventSource": "optional<DeleteEventSourceResult>"
+          }
+        },
+        "AppsConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<AppsEdge>>>"
+          }
+        },
+        "AppsEdge": {
+          "properties": {
+            "node": "App",
+            "cursor": "string"
+          }
+        },
+        "AwsEventSource": {
+          "properties": {
+            "id": "string",
+            "awsAccount": "string",
+            "eventSourceName": "string",
+            "eventSourceRegion": "AwsRegion",
+            "arn": "string",
+            "webhooksCount": "string"
+          }
+        },
+        "AwsEventSourcesConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<AwsEventSourcesEdge>>>"
+          }
+        },
+        "AwsEventSourcesEdge": {
+          "properties": {
+            "node": "AwsEventSource",
+            "cursor": "string"
+          }
+        },
+        "AwsRegion": {
+          "enum": [
+            "AF_SOUTH_1",
+            "AP_EAST_1",
+            "AP_NORTHEAST_1",
+            "AP_NORTHEAST_2",
+            "AP_NORTHEAST_3",
+            "AP_SOUTHEAST_1",
+            "AP_SOUTHEAST_2",
+            "AP_SOUTHEAST_3",
+            "AP_SOUTHEAST_4",
+            "AP_SOUTH_1",
+            "AP_SOUTH_2",
+            "CA_CENTRAL_1",
+            "EU_CENTRAL_1",
+            "EU_CENTRAL_2",
+            "EU_NORTH_1",
+            "EU_SOUTH_1",
+            "EU_SOUTH_2",
+            "EU_WEST_1",
+            "EU_WEST_2",
+            "EU_WEST_3",
+            "IL_CENTRAL_1",
+            "ME_CENTRAL_1",
+            "SA_EAST_1",
+            "US_EAST_1",
+            "US_EAST_2",
+            "US_WEST_1",
+            "US_WEST_2"
+          ]
+        },
+        "CancelSubscriptionInput": {
+          "properties": {
+            "id": "string"
+          }
+        },
+        "CancelSubscriptionResult": {
+          "properties": {
+            "subscriptionId": "optional<string>",
+            "cancelledAt": "optional<datetime>"
+          }
+        },
+        "Checkout": {
+          "properties": {
+            "id": "string",
+            "accountId": "string",
+            "checkoutUrl": "string",
+            "items": "CheckoutItemConnection",
+            "status": "optional<CheckoutStatus>"
+          }
+        },
+        "CheckoutItem": {
+          "properties": {
+            "description": "optional<string>",
+            "pricingPlan": "CheckoutItemPricingPlan",
+            "product": "CheckoutItemProduct",
+            "redirectUrl": "optional<string>",
+            "scope": "CheckoutItemScope",
+            "status": "optional<CheckoutItemStatus>",
+            "subscriptionId": "optional<string>"
+          }
+        },
+        "CheckoutItemConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<CheckoutItemEdge>>>"
+          }
+        },
+        "CheckoutItemEdge": {
+          "properties": {
+            "node": "CheckoutItem",
+            "cursor": "string"
+          }
+        },
+        "CheckoutItemInput": {
+          "properties": {
+            "description": "string",
+            "pricingPlan": "PricingPlanInput",
+            "product": "optional<CheckoutItemProductInput>",
+            "redirectUrl": "string",
+            "scope": "optional<CheckoutItemScopeInput>",
+            "subscriptionId": "optional<string>"
+          }
+        },
+        "CheckoutItemPricingInterval": {
+          "enum": [
+            "ANNUAL",
+            "MONTH",
+            "ONCE",
+            "QUARTER",
+            "SEMIANNUAL"
+          ]
+        },
+        "CheckoutItemPricingPlan": {
+          "properties": {
+            "interval": "optional<CheckoutItemPricingInterval>",
+            "price": "optional<Money>",
+            "trialDays": "optional<integer>"
+          }
+        },
+        "CheckoutItemProduct": {
+          "properties": {
+            "id": "optional<string>",
+            "productLevel": "optional<string>",
+            "type": "optional<CheckoutItemProductType>"
+          }
+        },
+        "CheckoutItemProductInput": {
+          "properties": {
+            "id": "optional<string>",
+            "productLevel": "optional<string>",
+            "type": "optional<CheckoutItemProductType>"
+          }
+        },
+        "CheckoutItemProductType": {
+          "enum": [
+            "APPLICATION"
+          ]
+        },
+        "CheckoutItemScope": {
+          "properties": {
+            "id": "optional<string>",
+            "type": "optional<CheckoutItemScopeType>"
+          }
+        },
+        "CheckoutItemScopeInput": {
+          "properties": {
+            "id": "optional<string>",
+            "type": "optional<CheckoutItemScopeType>"
+          }
+        },
+        "CheckoutItemScopeType": {
+          "enum": [
+            "STORE"
+          ]
+        },
+        "CheckoutItemStatus": {
+          "enum": [
+            "COMPLETE",
+            "PENDING",
+            "PROCESSING"
+          ]
+        },
+        "CheckoutMutations": {
+          "properties": {
+            "createCheckout": "optional<CreateCheckoutResult>"
+          }
+        },
+        "CheckoutStatus": {
+          "enum": [
+            "COMPLETE",
+            "PENDING",
+            "PROCESSING"
+          ]
+        },
+        "CollectionInfo": {
+          "properties": {
+            "totalItems": "optional<string>"
+          }
+        },
+        "CreateCheckoutInput": {
+          "properties": {
+            "accountId": "string",
+            "items": "list<CheckoutItemInput>"
+          }
+        },
+        "CreateCheckoutResult": {
+          "properties": {
+            "checkout": "optional<Checkout>"
+          }
+        },
+        "CreateEventSourceInput": {
+          "properties": {
+            "appId": "string",
+            "awsAccount": "string",
+            "eventSourceName": "string",
+            "eventSourceRegion": "AwsRegion"
+          }
+        },
+        "CreateEventSourceResult": {
+          "properties": {
+            "eventSource": "optional<AwsEventSource>"
+          }
+        },
+        "CreateUserInput": {
+          "properties": {
+            "email": "string",
+            "firstName": "string",
+            "lastName": "string",
+            "locale": "string"
+          }
+        },
+        "CreateUserResult": {
+          "properties": {
+            "user": "optional<User>"
+          }
+        },
+        "CreateUserWithPasswordInput": {
+          "properties": {
+            "email": "string",
+            "firstName": "string",
+            "lastName": "string",
+            "locale": "string",
+            "password": "string",
+            "passwordConfirmation": "string"
+          }
+        },
+        "CreateUserWithPasswordResult": {
+          "properties": {
+            "user": "optional<User>"
+          }
+        },
+        "CurrencyCode": {
+          "enum": [
+            "AED",
+            "AFN",
+            "ALL",
+            "AMD",
+            "ANG",
+            "AOA",
+            "ARS",
+            "AUD",
+            "AWG",
+            "AZN",
+            "BAM",
+            "BBD",
+            "BDT",
+            "BGN",
+            "BHD",
+            "BIF",
+            "BMD",
+            "BND",
+            "BOB",
+            "BOV",
+            "BRL",
+            "BSD",
+            "BTN",
+            "BWP",
+            "BYN",
+            "BYR",
+            "BZD",
+            "CAD",
+            "CDF",
+            "CHE",
+            "CHF",
+            "CHW",
+            "CLF",
+            "CLP",
+            "CNY",
+            "COP",
+            "COU",
+            "CRC",
+            "CUC",
+            "CUP",
+            "CVE",
+            "CZK",
+            "DJF",
+            "DKK",
+            "DOP",
+            "DZD",
+            "EGP",
+            "ERN",
+            "ETB",
+            "EUR",
+            "FJD",
+            "FKP",
+            "GBP",
+            "GEL",
+            "GHS",
+            "GIP",
+            "GMD",
+            "GNF",
+            "GTQ",
+            "GYD",
+            "HKD",
+            "HNL",
+            "HRK",
+            "HTG",
+            "HUF",
+            "IDR",
+            "ILS",
+            "INR",
+            "IQD",
+            "IRR",
+            "ISK",
+            "JMD",
+            "JOD",
+            "JPY",
+            "KES",
+            "KGS",
+            "KHR",
+            "KMF",
+            "KPW",
+            "KRW",
+            "KWD",
+            "KYD",
+            "KZT",
+            "LAK",
+            "LBP",
+            "LKR",
+            "LRD",
+            "LSL",
+            "LYD",
+            "MAD",
+            "MDL",
+            "MGA",
+            "MKD",
+            "MMK",
+            "MNT",
+            "MOP",
+            "MRO",
+            "MRU",
+            "MUR",
+            "MVR",
+            "MWK",
+            "MXN",
+            "MYR",
+            "MZN",
+            "NAD",
+            "NGN",
+            "NIO",
+            "NOK",
+            "NPR",
+            "NZD",
+            "OMR",
+            "PAB",
+            "PEN",
+            "PGK",
+            "PHP",
+            "PKR",
+            "PLN",
+            "PYG",
+            "QAR",
+            "RON",
+            "RSD",
+            "RUB",
+            "RWF",
+            "SAR",
+            "SBD",
+            "SCR",
+            "SDG",
+            "SEK",
+            "SGD",
+            "SHP",
+            "SLL",
+            "SOS",
+            "SRD",
+            "SSP",
+            "STD",
+            "STN",
+            "SVC",
+            "SYP",
+            "SZL",
+            "THB",
+            "TJS",
+            "TMT",
+            "TND",
+            "TOP",
+            "TRY",
+            "TTD",
+            "TWD",
+            "TZS",
+            "UAH",
+            "UGX",
+            "USD",
+            "USN",
+            "UYI",
+            "UYU",
+            "UZS",
+            "VEF",
+            "VES",
+            "VND",
+            "VUV",
+            "WST",
+            "XAF",
+            "XAG",
+            "XAU",
+            "XBA",
+            "XBB",
+            "XBC",
+            "XBD",
+            "XCD",
+            "XDR",
+            "XOF",
+            "XPD",
+            "XPF",
+            "XPT",
+            "XSU",
+            "XTS",
+            "XUA",
+            "XXX",
+            "YER",
+            "ZAR",
+            "ZMW",
+            "ZWL"
+          ]
+        },
+        "DeleteEventSourceInput": {
+          "properties": {
+            "appId": "string",
+            "id": "string"
+          }
+        },
+        "DeleteEventSourceResult": {
+          "properties": {
+            "deletedEventSourceId": "string",
+            "affectedWebhooksIds": "list<string>"
+          }
+        },
+        "Money": {
+          "properties": {
+            "currencyCode": "string",
+            "value": "string"
+          }
+        },
+        "MoneyInput": {
+          "properties": {
+            "currencyCode": "CurrencyCode",
+            "value": "string"
+          }
+        },
+        "PageInfo": {
+          "properties": {
+            "hasNextPage": "boolean",
+            "hasPreviousPage": "boolean",
+            "startCursor": "optional<string>",
+            "endCursor": "optional<string>"
+          }
+        },
+        "PricingPlanInput": {
+          "properties": {
+            "interval": "CheckoutItemPricingInterval",
+            "price": "MoneyInput",
+            "trialDays": "optional<integer>"
+          }
+        },
+        "RemoveUserFromAccountInput": {
+          "properties": {
+            "email": "optional<string>",
+            "userId": "optional<string>"
+          }
+        },
+        "RemoveUserFromAccountResult": {
+          "properties": {
+            "accountId": "string",
+            "userId": "string"
+          }
+        },
+        "RemoveUserFromStoreInput": {
+          "properties": {
+            "storeId": "string",
+            "userId": "string"
+          }
+        },
+        "RemoveUserFromStoreResult": {
+          "properties": {
+            "storeId": "string",
+            "user": "optional<User>"
+          }
+        },
+        "RemoveUsersFromUserGroupInput": {
+          "properties": {
+            "userIds": "list<string>",
+            "userGroupId": "string"
+          }
+        },
+        "RemoveUsersFromUserGroupResult": {
+          "properties": {
+            "users": "UserConnection",
+            "pollingId": "optional<string>"
+          }
+        },
+        "Status": {
+          "properties": {
+            "addUsersToUserGroups": "list<StoreStatus>"
+          }
+        },
+        "Store": {
+          "properties": {
+            "id": "string",
+            "apps": "AppsConnection",
+            "name": "string",
+            "storeHash": "string",
+            "users": "StoreUserConnection"
+          }
+        },
+        "StoreConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<StoreEdge>>>"
+          }
+        },
+        "StoreEdge": {
+          "properties": {
+            "node": "Store",
+            "cursor": "string"
+          }
+        },
+        "StoreFilterInput": {
+          "properties": {
+            "ids": "optional<list<string>>",
+            "storeHashes": "optional<list<string>>"
+          }
+        },
+        "StoreStatus": {
+          "properties": {
+            "store": "string",
+            "status": "StoreStatusEnum"
+          }
+        },
+        "StoreStatusEnum": {
+          "enum": [
+            "ACCEPTED",
+            "FAILED",
+            "SUCCESS"
+          ]
+        },
+        "StoreUser": {
+          "properties": {
+            "id": "string",
+            "apps": "AppsConnection",
+            "email": "string",
+            "firstName": "string",
+            "lastLoginAt": "optional<datetime>",
+            "lastName": "string",
+            "locale": "string",
+            "permissions": "list<string>",
+            "status": "optional<StoreUserStatus>",
+            "updatedAt": "optional<datetime>"
+          }
+        },
+        "StoreUserConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<StoreUserEdge>>>",
+            "collectionInfo": "optional<CollectionInfo>"
+          }
+        },
+        "StoreUserEdge": {
+          "properties": {
+            "node": "StoreUser",
+            "cursor": "string"
+          }
+        },
+        "StoreUserStatus": {
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ]
+        },
+        "SubscriptionBillingInterval": {
+          "enum": [
+            "ANNUAL",
+            "MONTH",
+            "NONE",
+            "ONCE",
+            "QUARTER",
+            "SEMIANNUAL"
+          ]
+        },
+        "SubscriptionConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<SubscriptionEdge>>>"
+          }
+        },
+        "SubscriptionEdge": {
+          "properties": {
+            "node": "Subscription",
+            "cursor": "string"
+          }
+        },
+        "SubscriptionFiltersInput": {
+          "properties": {
+            "ids": "optional<list<string>>",
+            "productId": "optional<string>",
+            "productType": "optional<SubscriptionProductType>",
+            "scopeId": "optional<string>",
+            "scopeType": "optional<SubscriptionScopeType>",
+            "status": "optional<SubscriptionStatus>",
+            "updatedAfter": "optional<datetime>"
+          }
+        },
+        "SubscriptionMutations": {
+          "properties": {
+            "cancelSubscription": "optional<CancelSubscriptionResult>"
+          }
+        },
+        "SubscriptionProduct": {
+          "properties": {
+            "id": "string",
+            "type": "optional<SubscriptionProductType>",
+            "productLevel": "string"
+          }
+        },
+        "SubscriptionProductType": {
+          "enum": [
+            "APPLICATION",
+            "NONE"
+          ]
+        },
+        "SubscriptionScope": {
+          "properties": {
+            "id": "string",
+            "type": "optional<SubscriptionScopeType>"
+          }
+        },
+        "SubscriptionScopeType": {
+          "enum": [
+            "STORE"
+          ]
+        },
+        "SubscriptionStatus": {
+          "enum": [
+            "ACTIVE",
+            "CANCELLED",
+            "SUSPENDED"
+          ]
+        },
+        "System": {
+          "properties": {
+            "time": "string"
+          }
+        },
+        "TargetByUserGroup": {
+          "properties": {
+            "id": "string",
+            "type": "optional<TargetType>"
+          }
+        },
+        "TargetConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<TargetEdge>>>",
+            "collectionInfo": "optional<CollectionInfo>"
+          }
+        },
+        "TargetEdge": {
+          "properties": {
+            "node": "TargetByUserGroup",
+            "cursor": "string"
+          }
+        },
+        "TargetType": {
+          "enum": [
+            "ACCOUNT",
+            "NONE",
+            "STORE"
+          ]
+        },
+        "User": {
+          "properties": {
+            "id": "string",
+            "email": "string",
+            "firstName": "string",
+            "lastName": "string",
+            "locale": "string",
+            "userGroups": "UserGroupByUserConnection"
+          }
+        },
+        "UserConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<UserEdge>>>"
+          }
+        },
+        "UserEdge": {
+          "properties": {
+            "node": "User",
+            "cursor": "string"
+          }
+        },
+        "UserGroup": {
+          "properties": {
+            "id": "string",
+            "name": "string",
+            "description": "optional<string>",
+            "users": "UserConnection",
+            "targets": "TargetConnection"
+          }
+        },
+        "UserGroupByUser": {
+          "properties": {
+            "id": "string",
+            "name": "string",
+            "description": "optional<string>"
+          }
+        },
+        "UserGroupByUserConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<UserGroupByUserEdge>>>",
+            "collectionInfo": "optional<CollectionInfo>"
+          }
+        },
+        "UserGroupByUserEdge": {
+          "properties": {
+            "node": "UserGroupByUser",
+            "cursor": "string"
+          }
+        },
+        "UserGroupConnection": {
+          "properties": {
+            "pageInfo": "PageInfo",
+            "edges": "optional<list<optional<UserGroupEdge>>>",
+            "collectionInfo": "optional<CollectionInfo>"
+          }
+        },
+        "UserGroupEdge": {
+          "properties": {
+            "node": "UserGroup",
+            "cursor": "string"
+          }
+        },
+        "UserGroupMutations": {
+          "properties": {
+            "addUsersToUserGroups": "optional<AddUsersToUserGroupsResult>",
+            "removeUsersFromUserGroup": "optional<RemoveUsersFromUserGroupResult>"
+          }
+        },
+        "UserIdentifierInput": {
+          "properties": {
+            "email": "optional<string>",
+            "id": "optional<string>"
+          }
+        },
+        "UserMutations": {
+          "properties": {
+            "createUserWithPassword": "optional<CreateUserWithPasswordResult>",
+            "createUser": "optional<CreateUserResult>",
+            "addUserToStore": "optional<AddUserToStoreResult>",
+            "removeUserFromStore": "optional<RemoveUserFromStoreResult>"
+          }
+        },
+        "NodeRequest": {
+          "properties": {
+            "id": "string"
+          }
+        },
+        "NodesRequest": {
+          "properties": {
+            "ids": "list<string>"
+          }
+        }
+      },
+      "service": {
+        "auth": false,
+        "base-path": "",
+        "endpoints": {
+          "account": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "response": "AccountMutations"
+          },
+          "node": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "NodeRequest"
+            },
+            "response": "optional<Node>"
+          },
+          "nodes": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "request": {
+              "body": "NodesRequest"
+            },
+            "response": "list<optional<Node>>"
+          },
+          "system": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "response": "System"
+          },
+          "checkout": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "response": "CheckoutMutations"
+          },
+          "subscription": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "response": "SubscriptionMutations"
+          },
+          "user": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "response": "UserMutations"
+          },
+          "app": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "response": "AppMutations"
+          },
+          "userGroup": {
+            "auth": false,
+            "method": "POST",
+            "path": "",
+            "response": "UserGroupMutations"
+          }
+        }
+      }
+    }
+  }
+}
