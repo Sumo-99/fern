@@ -12,7 +12,8 @@ import {
     GraphQLObjectType,
     GraphQLOutputType,
     GraphQLScalarType,
-    GraphQLSchema
+    GraphQLSchema,
+    GraphQLUnionType
 } from "graphql";
 
 export declare namespace GraphQLImporter {
@@ -72,6 +73,14 @@ export class GraphQLImporter extends APIDefinitionImporter<GraphQLImporter.Args>
                     name: type.name,
                     schema: {
                         enum: type.getValues().map((value) => value.name)
+                    }
+                });
+            } else if (type instanceof GraphQLUnionType) {
+                this.fernDefinitionBuilder.addType(FERN_FILEPATH, {
+                    name: type.name,
+                    schema: {
+                        discriminated: false,
+                        union: type.getTypes().map((t) => t.name)
                     }
                 });
             }

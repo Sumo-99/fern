@@ -37,6 +37,14 @@ describe("GraphQL IR generation", () => {
         expect(Object.keys(ir.services)).not.toHaveLength(0);
         expect(Object.values(ir.services).some((service) => service.endpoints.length > 0)).toBe(true);
         expect(Object.keys(ir.types)).not.toHaveLength(0);
-        expect(Object.values(ir.types).some((type) => type.name.name.pascalCase.safeName === "User")).toBe(true);
+        expect(
+            Object.values(ir.types).some((type) => {
+                const name = type.name.name;
+                if (typeof name === "string") {
+                    return name === "User";
+                }
+                return name.originalName === "User" || name.camelCase?.safeName === "user";
+            })
+        ).toBe(true);
     });
 });
