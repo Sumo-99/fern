@@ -86,7 +86,11 @@ async function getIntermediateRepresentation({
     directFromOpenapi: boolean;
 }): Promise<unknown> {
     let intermediateRepresentation;
-    if (directFromOpenapi && workspace instanceof OSSWorkspace) {
+    const shouldUseOssIrPath =
+        workspace instanceof OSSWorkspace &&
+        (directFromOpenapi || workspace.allSpecs.some((spec) => spec.type === "graphql"));
+
+    if (shouldUseOssIrPath) {
         intermediateRepresentation = await workspace.getIntermediateRepresentation({
             context,
             audiences,
