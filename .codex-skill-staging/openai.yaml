@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debugging Report"
+  short_description: "Diagnose failures with evidence reports."
+  default_prompt: "Use $debugging-report to investigate the failure, compare the goal against the observed behavior, and produce a concise debugging report."
