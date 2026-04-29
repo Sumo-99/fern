@@ -6,8 +6,7 @@
  * - A version bump recommendation (major/minor/patch)
  */
 
-import { ClientRegistry } from "@boundaryml/baml";
-import { AnalyzeCommitDiffResponse, b as BamlClient, configureBamlClient, VersionBump } from "@fern-api/cli-ai";
+import { generatorsYml } from "@fern-api/configuration";
 import { loadGeneratorsConfiguration } from "@fern-api/configuration-loader";
 import { extractErrorMessage } from "@fern-api/core-utils";
 import { AbsoluteFilePath, cwd, doesPathExist, resolve } from "@fern-api/fs-utils";
@@ -18,7 +17,8 @@ import {
     MAX_AI_DIFF_BYTES,
     MAX_CHUNKS,
     MAX_RAW_DIFF_BYTES,
-    maxVersionBump
+    maxVersionBump,
+    VersionBump
 } from "@fern-api/generator-cli/autoversion";
 import { Project } from "@fern-api/project-loader";
 import { CliError, TaskAbortSignal, TaskContext } from "@fern-api/task-context";
@@ -27,8 +27,50 @@ import { promisify } from "util";
 import { CliContext } from "../../cli-context/CliContext.js";
 
 const execAsync = promisify(exec);
+const requireFromHere = eval("require") as NodeRequire;
 
-async function getClientRegistry(context: CliContext, project: Project): Promise<ClientRegistry> {
+interface AnalyzeCommitDiffResponse {
+    message: string;
+    changelog_entry: string;
+    version_bump: string;
+    version_bump_reason: string;
+}
+
+interface ConsolidateChangelogResponse {
+    consolidated_changelog: string;
+    version_bump_reason: string;
+}
+
+interface BamlClientLike {
+    AnalyzeSdkDiff(
+        diff: string,
+        language: string,
+        previousVersion: string,
+        priorChangelog: string,
+        specCommitMessage: string
+    ): Promise<AnalyzeCommitDiffResponse>;
+    ConsolidateChangelog(
+        rawEntries: string,
+        versionBump: string,
+        language: string,
+        previousVersion: string,
+        newVersion: string
+    ): Promise<ConsolidateChangelogResponse>;
+}
+
+interface CliAiModule {
+    configureBamlClient(config: generatorsYml.AiServicesSchema): unknown;
+    b: {
+        withOptions(options: { clientRegistry: unknown }): BamlClientLike;
+    };
+}
+
+async function loadCliAi(): Promise<CliAiModule> {
+    const cliAiModuleId = process.env.FERN_CLI_AI_MODULE ?? ["@fern-api", "cli-ai"].join("/");
+    return requireFromHere(cliAiModuleId) as CliAiModule;
+}
+
+async function getClientRegistry(context: CliContext, project: Project): Promise<unknown> {
     // Get the first API workspace (or we could make this configurable)
     const workspace = project.apiWorkspaces[0];
     if (workspace == null) {
@@ -60,6 +102,7 @@ async function getClientRegistry(context: CliContext, project: Project): Promise
     }
 
     context.logger.debug(`Using AI service: ${generatorsConfig.ai.provider} with model ${generatorsConfig.ai.model}`);
+    const { configureBamlClient } = await loadCliAi();
     return configureBamlClient(generatorsConfig.ai);
 }
 
@@ -144,6 +187,7 @@ export async function sdkDiffCommand({
     // Analyze the diff using LLM with the configured client
     context.logger.info("Analyzing diff with LLM...");
     try {
+        const { b: BamlClient } = await loadCliAi();
         const bamlClient = BamlClient.withOptions({ clientRegistry });
 
         if (cappedChunks.length <= 1) {

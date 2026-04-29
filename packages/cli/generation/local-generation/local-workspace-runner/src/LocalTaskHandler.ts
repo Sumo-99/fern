@@ -1,5 +1,3 @@
-import { ClientRegistry } from "@boundaryml/baml";
-import { b as BamlClient, configureBamlClient, VersionBump } from "@fern-api/cli-ai";
 import { FERNIGNORE_FILENAME, generatorsYml, getFernIgnorePaths } from "@fern-api/configuration";
 import { extractErrorMessage } from "@fern-api/core-utils";
 import { AbsoluteFilePath, doesPathExist, join, RelativeFilePath } from "@fern-api/fs-utils";
@@ -15,7 +13,8 @@ import {
     MAX_AI_DIFF_BYTES,
     MAX_CHUNKS,
     MAX_RAW_DIFF_BYTES,
-    maxVersionBump
+    maxVersionBump,
+    VersionBump
 } from "@fern-api/generator-cli/autoversion";
 import { loggingExeca } from "@fern-api/logging-execa";
 import { CliError, TaskContext } from "@fern-api/task-context";
@@ -27,6 +26,48 @@ import { join as pathJoin } from "path";
 import semver from "semver";
 import tmp from "tmp-promise";
 import { sanitizeChangelogEntry } from "./sanitizeChangelogEntry.js";
+const requireFromHere = eval("require") as NodeRequire;
+
+interface AnalyzeSdkDiffResponse {
+    version_bump: string;
+    message: string;
+    changelog_entry: string;
+    version_bump_reason: string;
+}
+
+interface BamlClientLike {
+    AnalyzeSdkDiff(
+        diff: string,
+        language: string,
+        previousVersion: string,
+        priorChangelog: string,
+        specCommitMessage: string
+    ): Promise<AnalyzeSdkDiffResponse>;
+    ConsolidateChangelog(
+        rawEntries: string,
+        versionBump: string,
+        language: string,
+        previousVersion: string,
+        projectedVersion: string
+    ): Promise<{
+        consolidated_changelog: string;
+        pr_description: string;
+        version_bump_reason: string;
+    }>;
+}
+
+interface CliAiModule {
+    configureBamlClient(config: generatorsYml.AiServicesSchema): unknown;
+    b: {
+        withOptions(options: { clientRegistry: unknown }): BamlClientLike;
+    };
+}
+
+async function loadCliAi(): Promise<CliAiModule> {
+    const cliAiModuleId = process.env.FERN_CLI_AI_MODULE ?? ["@fern-api", "cli-ai"].join("/");
+    return requireFromHere(cliAiModuleId) as CliAiModule;
+}
+
 export declare namespace LocalTaskHandler {
     export interface Init {
         context: TaskContext;
@@ -422,10 +463,8 @@ export class LocalTaskHandler {
                                 this.context.logger.debug(
                                     `Consolidating ${allChangelogEntries.length} changelog entries via AI rollup`
                                 );
-                                const projectedVersion = this.incrementVersion(
-                                    previousVersion,
-                                    bestBump as VersionBump
-                                );
+                                const projectedVersion = this.incrementVersion(previousVersion, bestBump as VersionBump);
+                                const { b: BamlClient } = await loadCliAi();
                                 const rollup = await BamlClient.withOptions({
                                     clientRegistry: await this.getClientRegistry()
                                 }).ConsolidateChangelog(
@@ -565,6 +604,7 @@ export class LocalTaskHandler {
     ): Promise<CachedAnalysis | null> {
         const doAnalysis = async (): Promise<CachedAnalysis | null> => {
             const clientRegistry = await this.getClientRegistry();
+            const { b: BamlClient } = await loadCliAi();
             const bamlClient = BamlClient.withOptions({ clientRegistry });
             const analysis = await bamlClient.AnalyzeSdkDiff(
                 cleanedDiff,
@@ -578,7 +618,7 @@ export class LocalTaskHandler {
                 return null;
             }
             return {
-                versionBump: analysis.version_bump,
+                versionBump: analysis.version_bump as VersionBump,
                 message: analysis.message,
                 changelogEntry: analysis.changelog_entry,
                 versionBumpReason: analysis.version_bump_reason
@@ -707,7 +747,7 @@ export class LocalTaskHandler {
      * Gets the BAML client registry for AI analysis.
      * This method is adapted from sdkDiffCommand.ts but needs project configuration.
      */
-    private async getClientRegistry(): Promise<ClientRegistry> {
+    private async getClientRegistry(): Promise<unknown> {
         if (this.ai == null) {
             throw new CliError({
                 message:
@@ -718,6 +758,7 @@ export class LocalTaskHandler {
         }
 
         this.context.logger.debug(`Using AI service: ${this.ai.provider} with model ${this.ai.model}`);
+        const { configureBamlClient } = await loadCliAi();
         return configureBamlClient(this.ai);
     }
 
