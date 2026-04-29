@@ -33,6 +33,7 @@ import os from "os";
 import path from "path";
 import tmp from "tmp-promise";
 import { getGeneratorOutputSubfolder } from "./getGeneratorOutputSubfolder.js";
+import { isGraphQlOssWorkspace } from "./isGraphQlOssWorkspace.js";
 import { writeFilesToDiskAndRunGenerator } from "./runGenerator.js";
 
 export async function runLocalGenerationForWorkspace({
@@ -150,34 +151,42 @@ export async function runLocalGenerationForWorkspace({
                 const packageName = getPackageNameFromGeneratorConfig(generatorInvocation);
                 version = version ?? (await computeSemanticVersion({ packageName, generatorInvocation }));
 
-                const intermediateRepresentation = generateIntermediateRepresentation({
-                    workspace: fernWorkspace,
-                    audiences: generatorGroup.audiences,
-                    generationLanguage: generatorInvocation.language,
-                    keywords: generatorInvocation.keywords,
-                    smartCasing: generatorInvocation.smartCasing,
-                    exampleGeneration: {
-                        includeOptionalRequestPropertyExamples: false,
-                        disabled: generatorInvocation.disableExamples
-                    },
-                    readme: generatorInvocation.readme,
-                    version: version ?? (await computeSemanticVersion({ packageName, generatorInvocation })),
-                    packageName,
-                    context,
-                    sourceResolver: new SourceResolverImpl(context, fernWorkspace),
-                    dynamicGeneratorConfig,
-                    generationMetadata: {
-                        cliVersion: workspace.cliVersion,
-                        generatorName: generatorInvocation.name,
-                        generatorVersion: generatorInvocation.version,
-                        generatorConfig: generatorInvocation.config,
-                        originGitCommit: getOriginGitCommit(),
-                        originGitCommitIsDirty: getOriginGitCommitIsDirty(),
-                        invokedBy: detectInvocationSource(),
-                        requestedVersion: userProvidedVersion,
-                        ciProvider: detectCiProvider()
-                    }
-                });
+                const intermediateRepresentation = isGraphQlOssWorkspace(workspace)
+                    ? await workspace.getIntermediateRepresentation({
+                          context,
+                          audiences: generatorGroup.audiences,
+                          enableUniqueErrorsPerEndpoint: true,
+                          generateV1Examples: false,
+                          logWarnings: false
+                      })
+                    : generateIntermediateRepresentation({
+                          workspace: fernWorkspace,
+                          audiences: generatorGroup.audiences,
+                          generationLanguage: generatorInvocation.language,
+                          keywords: generatorInvocation.keywords,
+                          smartCasing: generatorInvocation.smartCasing,
+                          exampleGeneration: {
+                              includeOptionalRequestPropertyExamples: false,
+                              disabled: generatorInvocation.disableExamples
+                          },
+                          readme: generatorInvocation.readme,
+                          version: version ?? (await computeSemanticVersion({ packageName, generatorInvocation })),
+                          packageName,
+                          context,
+                          sourceResolver: new SourceResolverImpl(context, fernWorkspace),
+                          dynamicGeneratorConfig,
+                          generationMetadata: {
+                              cliVersion: workspace.cliVersion,
+                              generatorName: generatorInvocation.name,
+                              generatorVersion: generatorInvocation.version,
+                              generatorConfig: generatorInvocation.config,
+                              originGitCommit: getOriginGitCommit(),
+                              originGitCommitIsDirty: getOriginGitCommitIsDirty(),
+                              invokedBy: detectInvocationSource(),
+                              requestedVersion: userProvidedVersion,
+                              ciProvider: detectCiProvider()
+                          }
+                      });
 
                 const venus = createVenusService({ token: token?.value });
 
