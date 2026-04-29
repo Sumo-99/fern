@@ -555,6 +555,10 @@ export class OSSWorkspace extends BaseOpenAPIWorkspace {
         return results;
     }
 
+    // TODO: spec.namespace is not yet passed through to IR generation for GraphQL specs.
+    // Multiple GraphQL specs with different namespaces will collapse into the same package space.
+    // TODO: spec.absoluteFilepathToOverrides is not yet applied in this path.
+    // Auth, header, and endpoint overrides configured alongside GraphQL specs are silently ignored.
     private async generateAllGraphQLIRs({
         context,
         audiences
