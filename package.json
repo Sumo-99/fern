@@ -163,6 +163,7 @@
     }
   },
   "dependencies": {
-    "js-yaml": "catalog:"
+    "js-yaml": "catalog:",
+    "zod": "catalog:"
   }
 }

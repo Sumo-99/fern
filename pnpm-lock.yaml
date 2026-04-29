@@ -574,7 +574,7 @@ catalogs:
       specifier: ^3.3.1
       version: 3.3.1
     zod:
-      specifier: ^3.22.3
+      specifier: ^3.25.76
       version: 3.25.76
 
 overrides:
@@ -604,6 +604,9 @@ importers:
       js-yaml:
         specifier: 'catalog:'
         version: 4.1.1
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@babel/core':
         specifier: 'catalog:'
@@ -6940,6 +6943,9 @@ importers:
       '@fern-api/cli-logger':
         specifier: workspace:*
         version: link:../../cli-logger
+      '@fern-api/cli-source-resolver':
+        specifier: workspace:*
+        version: link:../../cli-source-resolver
       '@fern-api/configuration':
         specifier: workspace:*
         version: link:../../configuration
@@ -6967,6 +6973,9 @@ importers:
       '@fern-api/graphql-to-fdr':
         specifier: workspace:*
         version: link:../../api-importers/graphql
+      '@fern-api/ir-generator':
+        specifier: workspace:*
+        version: link:../../generation/ir-generator
       '@fern-api/ir-sdk':
         specifier: workspace:*
         version: link:../../../ir-sdk

@@ -1,6 +1,7 @@
 import {
     AbstractAPIWorkspace,
     BaseOpenAPIWorkspace,
+    FernDefinition,
     FernWorkspace,
     GraphQLSpec,
     getOpenAPISettings,
@@ -12,7 +13,7 @@ import {
 } from "@fern-api/api-workspace-commons";
 import { AsyncAPIConverter, AsyncAPIConverterContext } from "@fern-api/asyncapi-to-ir";
 import { constructCasingsGenerator } from "@fern-api/casings-generator";
-import { Audiences, generatorsYml } from "@fern-api/configuration";
+import { Audiences, FERN_PACKAGE_MARKER_FILENAME, generatorsYml } from "@fern-api/configuration";
 import { extractErrorMessage, isNonNullish } from "@fern-api/core-utils";
 import { FdrAPI } from "@fern-api/fdr-sdk";
 import { RawSchemas } from "@fern-api/fern-definition-schema";
@@ -37,6 +38,7 @@ import { v4 as uuidv4 } from "uuid";
 import { loadOpenRpc } from "./loaders/index.js";
 import { OpenAPILoader } from "./loaders/OpenAPILoader.js";
 import { ProtobufIRGenerator } from "./protobuf/ProtobufIRGenerator.js";
+import { mapValues } from "./utils/mapValues.js";
 import { getAllOpenAPISpecs } from "./utils/getAllOpenAPISpecs.js";
 
 export declare namespace OSSWorkspace {
@@ -296,6 +298,7 @@ export class OSSWorkspace extends BaseOpenAPIWorkspace {
     }): Promise<IntermediateRepresentation> {
         // Start protobuf IR generation in parallel with OpenAPI processing
         const protobufIRResultsPromise = this.generateAllProtobufIRs({ context });
+        const graphqlIRResultsPromise = this.generateAllGraphQLIRs({ context, audiences });
 
         const specs = await this.getOpenAPISpecsCached({ context });
         const documents = await this.loader.loadDocuments({ context, specs });
@@ -463,6 +466,17 @@ export class OSSWorkspace extends BaseOpenAPIWorkspace {
                 mergedIr === undefined ? ir : mergeIntermediateRepresentation(mergedIr, ir, protobufCasingsGenerator);
         }
 
+        const graphqlIRResults = await graphqlIRResultsPromise;
+        const graphqlCasingsGenerator = constructCasingsGenerator({
+            generationLanguage: "typescript",
+            keywords: undefined,
+            smartCasing: false
+        });
+        for (const ir of graphqlIRResults) {
+            mergedIr =
+                mergedIr === undefined ? ir : mergeIntermediateRepresentation(mergedIr, ir, graphqlCasingsGenerator);
+        }
+
         for (const errorCollector of errorCollectors) {
             if (errorCollector.hasErrors()) {
                 const errorStats = errorCollector.getErrorStats();
@@ -535,6 +549,92 @@ export class OSSWorkspace extends BaseOpenAPIWorkspace {
                 }
             } catch (error) {
                 context.logger.log("warn", "Failed to parse protobuf IR: " + error);
+            }
+        }
+
+        return results;
+    }
+
+    private async generateAllGraphQLIRs({
+        context,
+        audiences
+    }: {
+        context: TaskContext;
+        audiences: Audiences;
+    }): Promise<IntermediateRepresentation[]> {
+        const [{ GraphQLImporter }, { generateIntermediateRepresentation }, { SourceResolverImpl }] = await Promise.all([
+            import("@fern-api/graphql-to-fdr"),
+            import("@fern-api/ir-generator"),
+            import("@fern-api/cli-source-resolver")
+        ]);
+        const graphqlSpecs = this.allSpecs.filter((spec): spec is GraphQLSpec => spec.type === "graphql");
+        if (graphqlSpecs.length === 0) {
+            return [];
+        }
+
+        const results: IntermediateRepresentation[] = [];
+        for (const spec of graphqlSpecs) {
+            try {
+                const graphQlImporter = new GraphQLImporter();
+                const definition = await graphQlImporter.import({
+                    absolutePathToGraphQlFile: spec.absoluteFilepath
+                });
+                const fernDefinition: FernDefinition = {
+                    absoluteFilePath: AbsoluteFilePath.of("/DUMMY_PATH"),
+                    rootApiFile: {
+                        defaultUrl: definition.rootApiFile["default-url"],
+                        contents: definition.rootApiFile,
+                        rawContents: yaml.dump(definition.rootApiFile)
+                    },
+                    namedDefinitionFiles: {
+                        ...mapValues(definition.definitionFiles, (definitionFile) => ({
+                            absoluteFilePath: AbsoluteFilePath.of("/DUMMY_PATH"),
+                            rawContents: yaml.dump(definitionFile),
+                            defaultUrl: undefined,
+                            contents: definitionFile
+                        })),
+                        [RelativeFilePath.of(FERN_PACKAGE_MARKER_FILENAME)]: {
+                            absoluteFilePath: AbsoluteFilePath.of("/DUMMY_PATH"),
+                            rawContents: yaml.dump(definition.packageMarkerFile),
+                            defaultUrl: undefined,
+                            contents: definition.packageMarkerFile as unknown as RawSchemas.DefinitionFileSchema
+                        }
+                    } as FernDefinition["namedDefinitionFiles"],
+                    packageMarkers: {},
+                    importedDefinitions: {}
+                };
+
+                const workspace = new FernWorkspace({
+                    absoluteFilePath: this.absoluteFilePath,
+                    workspaceName: this.workspaceName,
+                    generatorsConfiguration: this.generatorsConfiguration,
+                    dependenciesConfiguration: {
+                        dependencies: {}
+                    },
+                    definition: fernDefinition,
+                    cliVersion: this.cliVersion,
+                    sources: this.sources
+                });
+
+                const ir = generateIntermediateRepresentation({
+                    workspace,
+                    audiences,
+                    generationLanguage: "typescript",
+                    keywords: undefined,
+                    smartCasing: false,
+                    exampleGeneration: { disabled: false },
+                    readme: undefined,
+                    version: undefined,
+                    packageName: undefined,
+                    context,
+                    sourceResolver: new SourceResolverImpl(context, workspace)
+                });
+                results.push(ir);
+            } catch (error) {
+                context.logger.error(
+                    `Failed to generate GraphQL IR for spec ${spec.absoluteFilepath}:`,
+                    extractErrorMessage(error)
+                );
             }
         }
 
