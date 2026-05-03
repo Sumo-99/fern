@@ -6,6 +6,7 @@ import {
     GraphQLEnumType,
     GraphQLInputObjectType,
     GraphQLInputType,
+    GraphQLInterfaceType,
     GraphQLList,
     GraphQLNamedType,
     GraphQLNonNull,
@@ -35,8 +36,8 @@ export class GraphQLImporter extends APIDefinitionImporter<GraphQLImporter.Args>
         const schema = buildSchema(sdlContent);
 
         this.addTypes(schema);
-        this.addEndpoints(schema.getQueryType(), "POST");
-        this.addEndpoints(schema.getMutationType(), "POST");
+        this.addEndpoints(schema, schema.getQueryType(), "POST");
+        this.addEndpoints(schema, schema.getMutationType(), "POST");
 
         return this.fernDefinitionBuilder.build();
     }
@@ -55,7 +56,22 @@ export class GraphQLImporter extends APIDefinitionImporter<GraphQLImporter.Args>
                     name: type.name,
                     schema: {
                         properties: Object.fromEntries(
-                            Object.values(type.getFields()).map((field) => [field.name, this.convertOutputType(field.type)])
+                            Object.values(type.getFields()).map((field) => [
+                                field.name,
+                                this.convertOutputType(field.type, schema)
+                            ])
+                        )
+                    }
+                });
+            } else if (type instanceof GraphQLInterfaceType) {
+                this.fernDefinitionBuilder.addType(FERN_FILEPATH, {
+                    name: type.name,
+                    schema: {
+                        properties: Object.fromEntries(
+                            Object.values(type.getFields()).map((field) => [
+                                field.name,
+                                this.convertOutputType(field.type, schema)
+                            ])
                         )
                     }
                 });
@@ -64,7 +80,10 @@ export class GraphQLImporter extends APIDefinitionImporter<GraphQLImporter.Args>
                     name: type.name,
                     schema: {
                         properties: Object.fromEntries(
-                            Object.values(type.getFields()).map((field) => [field.name, this.convertInputType(field.type)])
+                            Object.values(type.getFields()).map((field) => [
+                                field.name,
+                                this.convertInputType(field.type, schema)
+                            ])
                         )
                     }
                 });
@@ -80,14 +99,14 @@ export class GraphQLImporter extends APIDefinitionImporter<GraphQLImporter.Args>
                     name: type.name,
                     schema: {
                         discriminated: false,
-                        union: type.getTypes().map((t) => t.name)
+                        union: type.getTypes().map((t) => this.convertNamedType(t, schema))
                     }
                 });
             }
         }
     }
 
-    private addEndpoints(rootType: GraphQLObjectType | null | undefined, method: "POST"): void {
+    private addEndpoints(schema: GraphQLSchema, rootType: GraphQLObjectType | null | undefined, method: "POST"): void {
         if (rootType == null) {
             return;
         }
@@ -99,7 +118,7 @@ export class GraphQLImporter extends APIDefinitionImporter<GraphQLImporter.Args>
                     name: requestTypeName,
                     schema: {
                         properties: Object.fromEntries(
-                            field.args.map((arg) => [arg.name, this.convertInputType(arg.type)])
+                            field.args.map((arg) => [arg.name, this.convertInputType(arg.type, schema)])
                         )
                     }
                 });
@@ -117,44 +136,52 @@ export class GraphQLImporter extends APIDefinitionImporter<GraphQLImporter.Args>
                                   body: this.getRequestTypeName(field.name)
                               }
                             : undefined,
-                    response: this.convertOutputType(field.type)
+                    response: this.convertOutputType(field.type, schema)
                 },
                 source: undefined
             });
         }
     }
 
-    private convertOutputType(type: GraphQLOutputType): string {
+    private convertOutputType(type: GraphQLOutputType, schema?: GraphQLSchema): string {
         if (type instanceof GraphQLNonNull) {
-            return this.convertNonNullOutputType(type.ofType);
+            return this.convertNonNullOutputType(type.ofType, schema);
         }
-        return `optional<${this.convertNonNullOutputType(type)}>`;
+        return `optional<${this.convertNonNullOutputType(type, schema)}>`;
     }
 
-    private convertNonNullOutputType(type: GraphQLOutputType): string {
+    private convertNonNullOutputType(type: GraphQLOutputType, schema?: GraphQLSchema): string {
         if (type instanceof GraphQLList) {
-            return `list<${this.convertOutputType(type.ofType)}>`;
+            return `list<${this.convertOutputType(type.ofType, schema)}>`;
         }
-        return this.convertNamedType(type as GraphQLNamedType);
+        return this.convertNamedType(type as GraphQLNamedType, schema);
     }
 
-    private convertInputType(type: GraphQLInputType): string {
+    private convertInputType(type: GraphQLInputType, schema?: GraphQLSchema): string {
         if (type instanceof GraphQLNonNull) {
-            return this.convertNonNullInputType(type.ofType);
+            return this.convertNonNullInputType(type.ofType, schema);
         }
-        return `optional<${this.convertNonNullInputType(type)}>`;
+        return `optional<${this.convertNonNullInputType(type, schema)}>`;
     }
 
-    private convertNonNullInputType(type: GraphQLInputType): string {
+    private convertNonNullInputType(type: GraphQLInputType, schema?: GraphQLSchema): string {
         if (type instanceof GraphQLList) {
-            return `list<${this.convertInputType(type.ofType)}>`;
+            return `list<${this.convertInputType(type.ofType, schema)}>`;
         }
-        return this.convertNamedType(type as GraphQLNamedType);
+        return this.convertNamedType(type as GraphQLNamedType, schema);
     }
 
-    private convertNamedType(type: GraphQLNamedType): string {
+    private convertNamedType(type: GraphQLNamedType, schema?: GraphQLSchema): string {
         if (type instanceof GraphQLScalarType) {
             return this.convertScalar(type);
+        }
+        if (
+            schema != null &&
+            (type === schema.getQueryType() ||
+                type === schema.getMutationType() ||
+                type === schema.getSubscriptionType())
+        ) {
+            return "unknown";
         }
         return type.name;
     }
